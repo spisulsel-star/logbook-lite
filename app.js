@@ -40,7 +40,8 @@
   const fTanggal = document.getElementById("fTanggal");
   const fJam = document.getElementById("fJam");
   const fJudul = document.getElementById("fJudul");
-  const fKategori = document.getElementById("fKategori");
+  const fTim = document.getElementById("fTim");
+  const fKegiatan = document.getElementById("fKegiatan");
   const fLokasi = document.getElementById("fLokasi");
   const fCatatan = document.getElementById("fCatatan");
   const fFoto = document.getElementById("fFoto");
@@ -259,6 +260,39 @@
   /* Form Tambah / Edit Log                                              */
   /* ------------------------------------------------------------------ */
 
+  /** Isi dropdown Tim dari CATEGORY_DATA (dijalankan sekali saat init). */
+  function populateTimOptions() {
+    fTim.innerHTML = '<option value="">Pilih Tim</option>';
+    Object.keys(CATEGORY_DATA).forEach((tim) => {
+      const opt = document.createElement("option");
+      opt.value = tim;
+      opt.textContent = tim;
+      fTim.appendChild(opt);
+    });
+  }
+
+  /** Isi dropdown Kegiatan/Pekerjaan sesuai Tim yang dipilih. */
+  function populateKegiatanOptions(tim, selectedValue) {
+    const kegiatanList = CATEGORY_DATA[tim] || [];
+    fKegiatan.innerHTML = "";
+    if (!tim || kegiatanList.length === 0) {
+      fKegiatan.innerHTML = '<option value="">Pilih Tim terlebih dahulu</option>';
+      fKegiatan.disabled = true;
+      return;
+    }
+    fKegiatan.disabled = false;
+    fKegiatan.innerHTML = '<option value="">Pilih Kegiatan/Pekerjaan</option>';
+    kegiatanList.forEach((kegiatan) => {
+      const opt = document.createElement("option");
+      opt.value = kegiatan;
+      opt.textContent = kegiatan;
+      fKegiatan.appendChild(opt);
+    });
+    if (selectedValue) fKegiatan.value = selectedValue;
+  }
+
+  fTim.addEventListener("change", () => populateKegiatanOptions(fTim.value));
+
   function resetForm() {
     logForm.reset();
     fId.value = "";
@@ -266,7 +300,8 @@
     fotoPreview.src = "";
     fTanggal.value = todayISO();
     fJam.value = nowTime();
-    [fJudul, fKategori, fLokasi, fCatatan].forEach((el) => el.classList.remove("invalid"));
+    populateKegiatanOptions("");
+    [fJudul, fTim, fKegiatan, fLokasi, fCatatan].forEach((el) => el.classList.remove("invalid"));
   }
 
   async function openForm(id) {
@@ -278,9 +313,13 @@
         fTanggal.value = item.tanggal;
         fJam.value = item.jam;
         fJudul.value = item.judul;
-        fKategori.value = item.kategori;
         fLokasi.value = item.lokasi;
         fCatatan.value = item.catatan;
+        const tim = findTimByKegiatan(item.kategori);
+        if (tim) {
+          fTim.value = tim;
+          populateKegiatanOptions(tim, item.kategori);
+        }
         if (item.foto) {
           fotoPreview.src = item.foto;
           fotoPreview.classList.remove("hidden");
@@ -303,7 +342,7 @@
 
   function validateForm() {
     let valid = true;
-    const requiredFields = [fJudul, fKategori, fLokasi, fCatatan];
+    const requiredFields = [fJudul, fTim, fKegiatan, fLokasi, fCatatan];
     requiredFields.forEach((el) => {
       const empty = !el.value || !el.value.trim();
       el.classList.toggle("invalid", empty);
@@ -328,7 +367,7 @@
       tanggal: fTanggal.value,
       jam: fJam.value,
       judul: fJudul.value.trim(),
-      kategori: fKategori.value,
+      kategori: fKegiatan.value,
       lokasi: fLokasi.value.trim(),
       catatan: fCatatan.value.trim(),
       foto,
@@ -450,6 +489,7 @@
   /* ------------------------------------------------------------------ */
 
   async function init() {
+    populateTimOptions();
     resetForm();
     renderConnectivity();
     goHome();
