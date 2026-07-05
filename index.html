@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>LogBook Lite</title>
+<meta name="description" content="Catat aktivitas harian dalam kurang dari 15 detik." />
+<meta name="theme-color" content="#2563EB" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="icons/icon-192.svg" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="LogBook" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ======================= APP SHELL ======================= -->
+<div id="app">
+
+  <!-- ---------- Top App Bar ---------- -->
+  <header class="topbar" id="topbar">
+    <button id="btnBack" class="icon-btn back-btn hidden" aria-label="Kembali">
+      <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <h1 class="topbar-title" id="topbarTitle">LogBook Lite</h1>
+    <button id="btnSearchOpen" class="icon-btn" aria-label="Cari">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </header>
+
+  <!-- ---------- Status Strip ---------- -->
+  <div class="status-strip" id="statusStrip">
+    <span class="status-pill" id="pillOnline">
+      <span class="dot"></span> <span id="pillOnlineText">Online</span>
+    </span>
+    <span class="status-pill" id="pillSync">
+      <span id="syncIcon">✓</span> <span id="pillSyncText">Tersinkron</span>
+    </span>
+  </div>
+
+  <!-- ======================= PAGE: HOME ======================= -->
+  <main id="page-home" class="page active">
+
+    <section class="dashboard-card">
+      <div class="dash-row">
+        <div>
+          <p class="dash-label">Hari ini</p>
+          <p class="dash-value" id="todayDate">-</p>
+        </div>
+        <div class="dash-count">
+          <span id="todayCount">0</span>
+          <small>log</small>
+        </div>
+      </div>
+      <div class="dash-grid">
+        <div class="dash-mini">
+          <p class="mini-value" id="pendingCount">0</p>
+          <p class="mini-label">Belum sinkron</p>
+        </div>
+        <div class="dash-mini">
+          <p class="mini-value" id="syncedCount">0</p>
+          <p class="mini-label">Berhasil sinkron</p>
+        </div>
+        <div class="dash-mini">
+          <p class="mini-value" id="lastSync">-</p>
+          <p class="mini-label">Terakhir sinkron</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-header">
+      <h2>Log Terbaru</h2>
+      <button id="btnSyncNow" class="link-btn">Sinkronkan Sekarang</button>
+    </div>
+
+    <div id="logList" class="log-list">
+      <!-- skeleton / items injected by app.js -->
+    </div>
+
+    <div id="emptyState" class="empty-state hidden">
+      <p>Belum ada catatan hari ini.</p>
+      <p class="empty-sub">Ketuk tombol + untuk mulai mencatat.</p>
+    </div>
+
+    <button id="btnAddLog" class="fab" aria-label="Tambah Log">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
+    </button>
+  </main>
+
+  <!-- ======================= PAGE: ADD / EDIT LOG ======================= -->
+  <main id="page-form" class="page">
+    <form id="logForm" class="form-card" novalidate>
+      <input type="hidden" id="logId" />
+
+      <div class="field-row">
+        <div class="field">
+          <label for="fTanggal">Tanggal</label>
+          <input type="date" id="fTanggal" required />
+        </div>
+        <div class="field">
+          <label for="fJam">Jam</label>
+          <input type="time" id="fJam" required />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="fJudul">Judul Kegiatan *</label>
+        <input type="text" id="fJudul" placeholder="Contoh: Rapat mingguan tim" required maxlength="120" />
+      </div>
+
+      <div class="field">
+        <label for="fKategori">Kategori *</label>
+        <select id="fKategori" required>
+          <option value="">Pilih kategori</option>
+          <option value="Pekerjaan">Pekerjaan</option>
+          <option value="Kuliah">Kuliah</option>
+          <option value="Kesehatan">Kesehatan</option>
+          <option value="Keuangan">Keuangan</option>
+          <option value="Pribadi">Pribadi</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="fLokasi">Lokasi *</label>
+        <input type="text" id="fLokasi" placeholder="Contoh: Kantor, Rumah" required maxlength="120" />
+      </div>
+
+      <div class="field">
+        <label for="fCatatan">Catatan *</label>
+        <textarea id="fCatatan" rows="3" placeholder="Detail aktivitas..." required maxlength="1000"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="fFoto">Foto (opsional)</label>
+        <input type="file" id="fFoto" accept="image/*" capture="environment" />
+        <img id="fotoPreview" class="foto-preview hidden" alt="Preview foto" />
+      </div>
+
+      <button type="submit" class="btn-primary" id="btnSave">Simpan</button>
+    </form>
+  </main>
+
+  <!-- ======================= PAGE: DETAIL ======================= -->
+  <main id="page-detail" class="page">
+    <div class="detail-card" id="detailCard"></div>
+    <div class="detail-actions">
+      <button id="btnEdit" class="btn-secondary">Edit</button>
+      <button id="btnResync" class="btn-secondary">Sinkronkan Ulang</button>
+      <button id="btnDelete" class="btn-danger">Hapus</button>
+    </div>
+  </main>
+
+  <!-- ======================= PAGE: SEARCH ======================= -->
+  <main id="page-search" class="page">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Cari tanggal, kategori, judul, catatan..." />
+    </div>
+    <div id="searchResults" class="log-list"></div>
+  </main>
+
+</div>
+
+<!-- ---------- Toast ---------- -->
+<div id="toast" class="toast"></div>
+
+<!-- ---------- Scripts ---------- -->
+<script src="db.js"></script>
+<script src="api.js"></script>
+<script src="sync.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
