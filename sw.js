@@ -3,7 +3,7 @@
  * Meng-cache app shell agar LogBook Lite bisa dibuka sepenuhnya offline.
  */
 
-const CACHE_NAME = "logbook-lite-cache-v1";
+const CACHE_NAME = "logbook-lite-cache-v2";
 
 const APP_SHELL = [
   "./",

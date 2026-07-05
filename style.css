@@ -260,6 +260,10 @@ button, input, textarea, select {
 .badge-category {
   background: #EFF4FF;
   color: var(--color-primary);
+  white-space: normal;
+  text-align: right;
+  max-width: 55%;
+  flex-shrink: 0;
 }
 .badge-synced { background: #ECFDF3; color: var(--color-success); }
 .badge-pending { background: #FFF7E6; color: var(--color-warning); }
