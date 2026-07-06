@@ -19,10 +19,21 @@
  * Deploy > Manage deployments > pilih deployment aktif > ikon pensil (Edit)
  * > Version: "New version" > Deploy. URL /exec tetap sama, tidak perlu
  * mengubah apa pun di api.js.
+ *
+ * FOTO DISIMPAN KE GOOGLE DRIVE (bukan base64 di sel Spreadsheet):
+ * Script ini otomatis membuat folder Drive bernama "LogBook Lite - Foto"
+ * dan menyimpan link foto (bukan data mentah) di kolom Foto. Karena ini
+ * memerlukan izin akses Google Drive, SETELAH menempel kode ini:
+ * 1. Di editor, pilih fungsi "authorizeDriveAccess_" pada dropdown di
+ *    sebelah tombol Run, lalu klik Run sekali. Setujui semua izin yang
+ *    diminta (termasuk akses Google Drive).
+ * 2. Baru lakukan redeploy seperti biasa (New version > Deploy).
+ * Tanpa langkah ini, penyimpanan foto akan gagal dengan error izin.
  */
 
 const SPREADSHEET_ID = "GANTI_DENGAN_SPREADSHEET_ID_ANDA";
 const SHEET_NAME = "Logs";
+const PHOTO_FOLDER_NAME = "LogBook Lite - Foto";
 
 const HEADERS = [
   "ID",
@@ -56,6 +67,42 @@ function jsonResponse_(payload) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+/** Ambil folder Drive tujuan penyimpanan foto, buat bila belum ada. */
+function getPhotoFolder_() {
+  const folders = DriveApp.getFoldersByName(PHOTO_FOLDER_NAME);
+  if (folders.hasNext()) return folders.next();
+  return DriveApp.createFolder(PHOTO_FOLDER_NAME);
+}
+
+/**
+ * Jalankan fungsi ini SEKALI secara manual dari editor Apps Script
+ * (pilih di dropdown Run) untuk memicu dialog izin akses Google Drive.
+ */
+function authorizeDriveAccess_() {
+  getPhotoFolder_();
+}
+
+/**
+ * Decode foto base64 (data URL) dari client, simpan sebagai file di Drive,
+ * lalu kembalikan link yang bisa langsung dipakai sebagai <img src="...">
+ * atau dibuka manual untuk diunduh. Mengembalikan "" jika format tak dikenali.
+ */
+function savePhotoToDrive_(logId, dataUrl) {
+  const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/.exec(dataUrl);
+  if (!match) return "";
+
+  const mimeType = match[1];
+  const base64Data = match[2];
+  const extension = mimeType.split("/")[1] || "jpg";
+  const bytes = Utilities.base64Decode(base64Data);
+  const blob = Utilities.newBlob(bytes, mimeType, `${logId}.${extension}`);
+
+  const file = getPhotoFolder_().createFile(blob);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+  return `https://drive.google.com/uc?export=view&id=${file.getId()}`;
+}
+
 /** Validasi field wajib pada payload yang diterima. */
 function validatePayload_(data) {
   const required = ["id", "tanggal", "jam", "judul", "kategori", "lokasi", "catatan"];
@@ -84,6 +131,8 @@ function doPost(e) {
       return jsonResponse_({ success: false, message: validationError });
     }
 
+    const fotoUrl = data.foto ? savePhotoToDrive_(data.id, data.foto) : "";
+
     const sheet = getSheet_();
     sheet.appendRow([
       data.id,
@@ -93,7 +142,7 @@ function doPost(e) {
       data.kategori,
       data.lokasi,
       data.catatan,
-      data.foto || "",
+      fotoUrl,
       data.createdAt || new Date().toISOString(),
     ]);
 
