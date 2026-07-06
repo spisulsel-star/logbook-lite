@@ -6,7 +6,7 @@
  */
 
 const API_CONFIG = {
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbwcpssM2h81_kDK3Oh5wP9K8ZOliuNKxwn1cYoxaSb2VT3ANWpMLaJbajjh7-QyJpemjQ/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbzMO5upT5xawMg29slOrbQbuWo1CYtk-leiy92jWXdASfGDLze18BYJGApgzfV9yNmuMQ/exec",
 };
 
 const Api = {
