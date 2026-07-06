@@ -132,4 +132,38 @@ const LogDB = {
     const all = await this.getAll();
     return all.filter((item) => item.tanggal === tanggal);
   },
+
+  /**
+   * Simpan log hasil tarik dari server hanya jika id-nya belum ada secara
+   * lokal, supaya tidak menimpa perubahan yang belum sempat disinkronkan
+   * di device ini. Mengembalikan true jika data baru ditambahkan.
+   */
+  async upsertFromServer(remote) {
+    const db = await openDB();
+    const existing = await this.getById(remote.id);
+    if (existing) return false;
+
+    const now = new Date().toISOString();
+    const record = {
+      id: remote.id,
+      tanggal: remote.tanggal,
+      jam: remote.jam,
+      judul: remote.judul,
+      kategori: remote.kategori,
+      lokasi: remote.lokasi,
+      catatan: remote.catatan,
+      foto: remote.foto || null,
+      status: "synced",
+      retry: 0,
+      createdAt: remote.createdAt || now,
+      updatedAt: now,
+    };
+
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_LOGS, "readwrite");
+      tx.objectStore(STORE_LOGS).put(record);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = (e) => reject(e.target.error);
+    });
+  },
 };

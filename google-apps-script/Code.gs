@@ -12,6 +12,13 @@
  *    - Execute as: Me
  *    - Who has access: Anyone
  * 6. Salin URL deployment, tempelkan ke WEB_APP_URL pada file api.js aplikasi.
+ *
+ * UPDATE SCRIPT YANG SUDAH PERNAH DI-DEPLOY:
+ * Menempel ulang kode ini ke editor SAJA TIDAK CUKUP — deployment lama tetap
+ * menjalankan versi kode yang lama. Setelah menempel kode baru:
+ * Deploy > Manage deployments > pilih deployment aktif > ikon pensil (Edit)
+ * > Version: "New version" > Deploy. URL /exec tetap sama, tidak perlu
+ * mengubah apa pun di api.js.
  */
 
 const SPREADSHEET_ID = "GANTI_DENGAN_SPREADSHEET_ID_ANDA";
@@ -96,7 +103,40 @@ function doPost(e) {
   }
 }
 
-/** Endpoint GET sederhana untuk memastikan Web App aktif (health check). */
-function doGet() {
+/**
+ * Endpoint GET.
+ * - ?action=list  -> kembalikan seluruh log di Spreadsheet sebagai JSON
+ *                    (dipakai fitur "Tarik Data dari Server" di device baru).
+ * - selain itu    -> health check sederhana untuk memastikan Web App aktif.
+ */
+function doGet(e) {
+  const action = e && e.parameter && e.parameter.action;
+
+  if (action === "list") {
+    try {
+      const sheet = getSheet_();
+      const rows = sheet.getDataRange().getValues();
+      rows.shift(); // buang baris header
+
+      const data = rows
+        .filter((row) => row[0]) // lewati baris kosong
+        .map((row) => ({
+          id: row[0],
+          tanggal: row[1],
+          jam: row[2],
+          judul: row[3],
+          kategori: row[4],
+          lokasi: row[5],
+          catatan: row[6],
+          foto: row[7] || "",
+          createdAt: row[8],
+        }));
+
+      return jsonResponse_({ success: true, data });
+    } catch (err) {
+      return jsonResponse_({ success: false, message: err.message || "Gagal mengambil data." });
+    }
+  }
+
   return jsonResponse_({ success: true, message: "LogBook Lite API aktif." });
 }

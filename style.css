@@ -185,9 +185,11 @@ button, input, textarea, select {
 /* ---------------- Section Header ---------------- */
 .section-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 8px;
   margin: 4px 0 10px 0;
+  flex-wrap: wrap;
 }
 .section-header h2 {
   font-size: 15px;
@@ -198,6 +200,13 @@ button, input, textarea, select {
   letter-spacing: 0.04em;
 }
 
+.header-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
 .link-btn {
   border: none;
   background: transparent;
@@ -206,6 +215,8 @@ button, input, textarea, select {
   font-size: 13px;
   cursor: pointer;
   padding: 6px 4px;
+  text-align: right;
+  white-space: nowrap;
 }
 .link-btn:active { opacity: 0.6; }
 

@@ -21,6 +21,7 @@
   const btnSearchOpen = document.getElementById("btnSearchOpen");
   const btnAddLog = document.getElementById("btnAddLog");
   const btnSyncNow = document.getElementById("btnSyncNow");
+  const btnPullData = document.getElementById("btnPullData");
 
   const logList = document.getElementById("logList");
   const emptyState = document.getElementById("emptyState");
@@ -181,6 +182,42 @@
       return;
     }
     await Sync.runSync();
+  });
+
+  btnPullData.addEventListener("click", async () => {
+    if (!navigator.onLine) {
+      showToast("Tidak ada koneksi internet.", "error");
+      return;
+    }
+
+    btnPullData.disabled = true;
+    const originalText = btnPullData.textContent;
+    btnPullData.textContent = "Menarik data...";
+
+    try {
+      const result = await Api.fetchAllLogs();
+      if (!result || !result.success) {
+        showToast(`Gagal menarik data: ${(result && result.message) || "tidak diketahui"}`, "error");
+        return;
+      }
+
+      let added = 0;
+      for (const remote of result.data || []) {
+        const isNew = await LogDB.upsertFromServer(remote);
+        if (isNew) added++;
+      }
+
+      showToast(
+        added > 0 ? `Berhasil menarik ${added} log baru dari server.` : "Tidak ada log baru dari server.",
+        "success"
+      );
+      renderHome();
+    } catch (err) {
+      showToast("Gagal menarik data dari server.", "error");
+    } finally {
+      btnPullData.disabled = false;
+      btnPullData.textContent = originalText;
+    }
   });
 
   /* ------------------------------------------------------------------ */

@@ -44,6 +44,27 @@ const Api = {
       return { success: false, message: err.message || "Gagal terhubung ke server" };
     }
   },
+
+  /**
+   * Ambil seluruh log yang tersimpan di Spreadsheet (dipakai fitur
+   * "Tarik Data dari Server" saat membuka aplikasi di device baru).
+   * Mengembalikan { success: true, data: [...] } atau { success: false, message }.
+   */
+  async fetchAllLogs() {
+    try {
+      const response = await fetch(`${API_CONFIG.WEB_APP_URL}?action=list`, {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        return { success: false, message: `HTTP ${response.status}` };
+      }
+
+      return await response.json();
+    } catch (err) {
+      return { success: false, message: err.message || "Gagal terhubung ke server" };
+    }
+  },
 };
 
 /** Escape input teks sederhana untuk mencegah karakter berbahaya ikut terkirim. */
